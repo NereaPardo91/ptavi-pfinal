@@ -17,7 +17,7 @@ except:
     sys.exit("Usage: python uaclient.py config method opcion")
 
 
-class SmallSMILHandler(ContentHandler):
+class ReadFich(ContentHandler):
     def __init__(self):
         self.account_username = ""
         self.account_passwd = ""
@@ -64,7 +64,7 @@ class SmallSMILHandler(ContentHandler):
 
 if __name__ == "__main__":
     parser = make_parser()
-    sHandler = SmallSMILHandler()
+    sHandler = ReadFich()
     parser.setContentHandler(sHandler)
     parser.parse(open(CONFIG))
     Datos = sHandler.get_tags()
@@ -82,29 +82,47 @@ if __name__ == "__main__":
 
     my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    my_socket.connect((str(IP_RegProxy), int(Puerto_RegProxy)))
+    my_socket.connect((IP_RegProxy, int(Puerto_RegProxy)))
+
 
     if METHOD == 'REGISTER':
-        Expire = sys.argv[3]
-        Line = "REGISTER sip:" + Username_A + ":" + Puerto_UAS + "SIP/2.0" + Expire + "\r\n"
+        Expires = sys.argv[3]
+        Line = "REGISTER sip:" + Username_A + ":" + Puerto_UAS + " " + "SIP/2.0\r\nExpires: " + Expires  + "\r\n"
+        print("Enviando: ")
+        print(Line)
         my_socket.send(bytes(Line, 'utf-8') + b'\r\n\r\n')
-        print("Enviando: " + Line)
+        data = my_socket.recv(1024)
+        print('Respuesta Server... ', data.decode('utf-8'))
+        Reply_Server = data.decode('utf-8').split('\r\n')
+        
+        if Reply_Server[0] == 'SIP/2.0 401 Unauthorized':
+            Line = "REGISTER sip:" + Username_A + ":" + Puerto_UAS + " " + "SIP/2.0\r\nExpires: " + Expires  + "\r\n" + "Authorization: Digest response =123123212312321212123"
+            print("Enviando: " + Line)
+            my_socket.send(bytes(Line, 'utf-8') + b'\r\n\r\n')
+            data = my_socket.recv(1024)
+            print('Respuesta Server... ', data.decode('utf-8'))
+            Reply_Server = data.decode('utf-8')
 
-    elif METHOD == 'INVITE':
-        Line1 = "sip:" + Username_A + "SIP/2.0\r\n" + "Content-Type: application/sdp" + "\r\n"
-        v = "v=0"
-        o = "o=" + Username_A + IP_UAS
-        s = "s=misesion"
-        t = "t=0"
-        m = "m=audio " + Puerto_RTP + "RTP"
-        Line = Line1 + '\r\n' + v + '\r\n' + o + '\r\n' + s + '\r\n' + t + '\r\n' + m + '\r\n'
-        my_socket.send(bytes(Line, 'utf-8') + b'\r\n\r\n')
-        print("Enviando: " + Line)
+    my_socket.send(bytes(Line, "utf-8"))
+    data = my_socket.recv(1024)
 
-    elif METHOD == 'BYE':
-        Line = "BYE sip:" + Username_A + "SIP/2.0\r\n"
-        my_socket.send(bytes(Line, 'utf-8') + b'\r\n\r\n')
+    #elif METHOD == 'INVITE':
+    #    Line1 = "sip:" + Username_A + "SIP/2.0\r\n" + "Content-Type: application/sdp" + "\r\n"
+     #   v = "v=0"
+      #  o = "o=" + Username_A + IP_UAS
+       # s = "s=misesion"
+        #t = "t=0"
+        #m = "m=audio " + Puerto_RTP + "RTP"
+       # Line = Line1 + '\r\n' + v + '\r\n' + o + '\r\n' + s + '\r\n' + t + '\r\n' + m + '\r\n'
+        #print("Enviando: " + Line)
+        #my_socket.send(bytes(Line, 'utf-8') + b'\r\n\r\n')
+        
 
-    print("Terminando socket...")
+    #elif METHOD == 'BYE':
+       # Line = "BYE sip:" + Username_A + "SIP/2.0\r\n"
+        #print("Enviando: " + Line)
+        #my_socket.send(bytes(Line, 'utf-8') + b'\r\n\r\n')
 
-    my_socket.close()
+#print("Terminando socket...")
+
+#my_socket.close()
