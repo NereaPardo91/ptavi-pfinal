@@ -102,27 +102,21 @@ if METHOD == 'REGISTER':
         data = my_socket.recv(1024)
         print('Respuesta Server... ', data.decode('utf-8'))
         Reply_Server = data.decode('utf-8')
+elif METHOD == 'INVITE':
+    v = 'v=0'
+    o = 'o=' + Username_A + IP_UAS
+    s = 's=misesion'
+    t = 't=0'
+    m = 'm=audio ' + Puerto_RTP + 'RTP'
+    Line = 'INVITE sip:' + Username_A + 'SIP/2.0\r\n' + 'Content-Type: application/sdp' + '\r\n' + v + '\r\n' + o + '\r\n' + s + '\r\n' + t + '\r\n' + m + '\r\n'
+    my_socket.send(bytes(Line, 'utf-8') + b'\r\n\r\n')
+    print('Enviando:') 
+    print(Line)
+elif METHOD == 'BYE':
+    Line = 'BYE sip:' + Username_A + 'SIP/2.0\r\n'
+    print('Enviando:') 
+    print(Line)
+    my_socket.send(bytes(Line, 'utf-8') + b'\r\n\r\n')
 
-    #my_socket.send(bytes(Line, 'utf-8'))
-    #data = my_socket.recv(1024)
-
-    elif METHOD == 'INVITE':
-        Line1 = 'sip:' + Username_A + 'SIP/2.0\r\n' + 'Content-Type: application/sdp' + '\r\n'
-        v = 'v=0'
-        o = 'o=' + Username_A + IP_UAS
-        s = 's=misesion'
-        t = 't=0'
-        m = 'm=audio ' + Puerto_RTP + 'RTP'
-        Line = Line1 + '\r\n' + v + '\r\n' + o + '\r\n' + s + '\r\n' + t + '\r\n' + m + '\r\n'
-        #my_socket.send(bytes(Line, 'utf-8') + b'\r\n\r\n')
-        print('Enviando:') 
-        print(Line)
-
-    #elif METHOD == 'BYE':
-       # Line = 'BYE sip:' + Username_A + 'SIP/2.0\r\n'
-        #print('Enviando: ' + Line)
-        #my_socket.send(bytes(Line, 'utf-8') + b'\r\n\r\n')
-
-#print('Terminando socket...')
-
-#my_socket.close()
+print('Terminando socket...')
+my_socket.close()
