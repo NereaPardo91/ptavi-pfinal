@@ -88,9 +88,9 @@ my_socket.connect((IP_RegProxy, int(Puerto_RegProxy)))
 if METHOD == 'REGISTER':
     Expires = sys.argv[3]
     Line = 'REGISTER sip:' + Username_A + ':' + Puerto_UAS + ' ' + 'SIP/2.0\r\nExpires: ' + Expires  + '\r\n'
+    my_socket.send(bytes(Line, 'utf-8') + b'\r\n\r\n')
     print('Enviando: ')
     print(Line)
-    my_socket.send(bytes(Line, 'utf-8') + b'\r\n\r\n')
     data = my_socket.recv(1024)
     print('Respuesta Server... ', data.decode('utf-8'))
     Reply_Server = data.decode('utf-8').split('\r\n')
@@ -108,10 +108,13 @@ elif METHOD == 'INVITE':
     s = 's=misesion'
     t = 't=0'
     m = 'm=audio ' + Puerto_RTP + 'RTP'
-    Line = 'INVITE sip:' + Username_A + 'SIP/2.0\r\n' + 'Content-Type: application/sdp' + '\r\n' + v + '\r\n' + o + '\r\n' + s + '\r\n' + t + '\r\n' + m + '\r\n'
+    Line = 'INVITE sip:' + Username_A + 'SIP/2.0\r\n' + 'Content-Type: application/sdp\r\n' + '\r\n' + v + '\r\n' + o + '\r\n' + s + '\r\n' + t + '\r\n' + m + '\r\n'
     my_socket.send(bytes(Line, 'utf-8') + b'\r\n\r\n')
     print('Enviando:') 
     print(Line)
+    data = my_socket.recv(1024)
+    print('Respuesta Server... ', data.decode('utf-8'))
+    Reply_Server = data.decode('utf-8').split('\r\n')
 elif METHOD == 'BYE':
     Line = 'BYE sip:' + Username_A + 'SIP/2.0\r\n'
     print('Enviando:') 
