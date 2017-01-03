@@ -47,6 +47,19 @@ class ReadFich(ContentHandler):
 
     def get_tags(self):
         return self.Datos
+        
+parser = make_parser()
+sHandler = ReadFich()
+parser.setContentHandler(sHandler)
+parser.parse(open(CONFIG))
+Datos = sHandler.get_tags()
+
+Name_Server = Datos[0]['name']
+IP_Server = Datos[0]['ip']
+Puerto_Server = Datos[0]['puerto']
+Path_Database = Datos[1]['path']
+Passwdpath_Database = Datos[1]['passwdpath']
+Log_Path = Datos[2]['path']
 
 class SIPRegisterHandler(socketserver.DatagramRequestHandler):
     '''
@@ -69,20 +82,12 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
                     self.wfile.write(b'SIP/2.0 200 OK\r\n\r\n')
             if(Estado != 'Autorizado'):
                 self.wfile.write(b'SIP/2.0 401 Unauthorized\r\n\r\n')
+        elif Line[0] == 'INVITE':
+            self.wfile.write(b'SIP/2.0 100 Trying' + b' ' + b'SIP/2.0 180 Ring' + b' ' + b'SIP/2.0 200 OK')
 
-parser = make_parser()
-sHandler = ReadFich()
-parser.setContentHandler(sHandler)
-parser.parse(open(CONFIG))
-Datos = sHandler.get_tags()
+
 #print(Datos)
 
-Name_Server = Datos[0]['name']
-IP_Server = Datos[0]['ip']
-Puerto_Server = Datos[0]['puerto']
-Path_Database = Datos[1]['path']
-Passwdpath_Database = Datos[1]['passwdpath']
-Log_Path = Datos[2]['path']
 
     #my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     #my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
