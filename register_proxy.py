@@ -93,15 +93,11 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
             my_socket.send(bytes(Linea, 'utf-8') + b'\r\n\r\n')
             print('Enviando a Server...')
             print(Linea)
-            print('Respuesta Server... ', data.decode('utf-8'))
             data = my_socket.recv(1024)
-            Reply_Server = data.decode('utf-8').split('\r\n')
-            self.wfile.write(b'paracliente\r\n\r\n')
+            print('Respuesta Server... ', data.decode('utf-8'))
+            Reply_Server = data.decode('utf-8')
+            self.wfile.write(bytes(Reply_Server, 'utf-8'))
            
-
-
-#print(Datos)
-
 
 if __name__ == '__main__':
     print(Puerto_Proxy)
