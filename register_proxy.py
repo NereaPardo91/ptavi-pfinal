@@ -5,6 +5,7 @@ Clase (y programa principal) para un servidor de eco en UDP simple
 '''
 
 import socketserver 
+import socket
 import sys
 import time
 import json
@@ -54,12 +55,16 @@ parser.setContentHandler(sHandler)
 parser.parse(open(CONFIG))
 Datos = sHandler.get_tags()
 
-Name_Server = Datos[0]['name']
-IP_Server = Datos[0]['ip']
-Puerto_Server = Datos[0]['puerto']
+Name_Proxy = Datos[0]['name']
+IP_Proxy = Datos[0]['ip']
+Puerto_Proxy = Datos[0]['puerto']
 Path_Database = Datos[1]['path']
 Passwdpath_Database = Datos[1]['passwdpath']
 Log_Path = Datos[2]['path']
+
+my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+my_socket.connect((('127.0.0.1'), 5555))
 
 class SIPRegisterHandler(socketserver.DatagramRequestHandler):
     '''
@@ -72,8 +77,10 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
         Registro
         '''
         Linea = self.rfile.read()
-        Line = Linea.decode('utf-8').split()
-        print(Linea.decode('utf-8'))
+        Linea = Linea.decode('utf-8')
+        Line = Linea.split()
+        print('Mensaje:')
+        print(Linea)
         Estado = ''
         if Line[0] == 'REGISTER':
             for i in Line:
@@ -83,19 +90,23 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
             if(Estado != 'Autorizado'):
                 self.wfile.write(b'SIP/2.0 401 Unauthorized\r\n\r\n')
         elif Line[0] == 'INVITE':
-            self.wfile.write(b'SIP/2.0 100 Trying' + b' ' + b'SIP/2.0 180 Ring' + b' ' + b'SIP/2.0 200 OK')
+            my_socket.send(bytes(Linea, 'utf-8') + b'\r\n\r\n')
+            print('Enviando a Server...')
+            print(Linea)
+            print('Respuesta Server... ', data.decode('utf-8'))
+            data = my_socket.recv(1024)
+            Reply_Server = data.decode('utf-8').split('\r\n')
+            self.wfile.write(b'paracliente\r\n\r\n')
+           
 
 
 #print(Datos)
 
 
-    #my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    #my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    #my_socket.connect((str(IP_RegProxy), int(Puerto_RegProxy)))
-
 if __name__ == '__main__':
-    serv = socketserver.UDPServer(('', 7777), SIPRegisterHandler)
-    print('Lanzando servidor UDP de eco...')
+    print(Puerto_Proxy)
+    serv = socketserver.UDPServer(('', int(Puerto_Proxy)), SIPRegisterHandler)
+    print('Listening...')
     try:
         serv.serve_forever()
     except KeyboardInterrupt:
