@@ -3,15 +3,80 @@ Clase (y programa principal) para un servidor de eco en UDP simple
 """
 
 import socketserver
+import socket
 import sys
 import os
+from xml.sax import make_parser
+from xml.sax.handler import ContentHandler
 
 try:
-    IP = sys.argv[1]
-    P = int(sys.argv[2])
-    Audio = sys.argv[3]
+    CONFIG = sys.argv[1]
 except:
     sys.exit("Usage: python server.py IP port audio_file")
+
+
+class ReadFich(ContentHandler):
+    def __init__(self):
+        self.account_username = ''
+        self.account_passwd = ''
+        self.uaserver_ip = ''
+        self.uaserver_puerto = ''
+        self.rtpaudio_puerto = ''
+        self.regproxy_ip = ''
+        self.regproxy_puerto = ''
+        self.log_path = ''
+        self.audio_path = ''
+        self.Datos = []
+
+    def startElement(self, name, attrs):
+        if name == 'account':
+            self.account_username = attrs.get('username', '')
+            self.account_passwd = attrs.get('passwd', '')
+            atrib = {'username': self.account_username, 'passwd': self.account_passwd}
+            self.Datos.append(atrib)
+        elif name == 'uaserver':
+            self.uaserver_ip = attrs.get('ip', '')
+            self.uaserver_puerto = attrs.get('puerto', '')
+            atrib = {'ip' : self.uaserver_ip, 'puerto': self.uaserver_puerto}
+            self.Datos.append(atrib)
+        elif name == 'rtpaudio':
+            self.rtpaudio_puerto = attrs.get('puerto', '')
+            atrib = {'puerto': self.rtpaudio_puerto}
+            self.Datos.append(atrib)
+        elif name == 'regproxy':
+            self.regproxy_ip = attrs.get('ip', '')
+            self.regproxy_puerto = attrs.get('puerto', '')
+            atrib = {'ip': self.regproxy_ip, 'puerto': self.regproxy_puerto}
+            self.Datos.append(atrib)
+        elif name == 'log':
+            self.log_path = attrs.get('path', '')
+            atrib = {'path', ''}
+            self.Datos.append(atrib)
+        elif name == 'audio':
+            self.audio_path = attrs.get('path', '')
+            atrib = {'path', ''}
+            self.Datos.append(atrib)
+
+    def get_tags(self):
+        return self.Datos
+
+
+parser = make_parser()
+sHandler = ReadFich()
+parser.setContentHandler(sHandler)
+parser.parse(open(CONFIG))
+Datos = sHandler.get_tags()
+#print(Datos)
+
+Username_A = Datos[0]['username']
+Passwd_A = Datos[0]['passwd']
+IP_UAS = Datos[1]['ip']
+Puerto_UAS = Datos[1]['puerto']
+Puerto_RTP = Datos[2]['puerto']
+IP_RegProxy = Datos[3]['ip']
+Puerto_RegProxy = Datos[3]['puerto']
+#Path_Log = Datos[4]['path']
+#Path_Audio = Datos[5]['path']
 
 
 class EchoHandler(socketserver.DatagramRequestHandler):
@@ -19,25 +84,17 @@ class EchoHandler(socketserver.DatagramRequestHandler):
     Echo server class
     """
     def handle(self):
-        line = self.rfile.read()
-        print("El cliente nos manda " + line.decode('utf-8'))
-        line = line.decode('utf-8').split()
-
-        if line[0] == 'INVITE':
+        Linea = self.rfile.read()
+        Linea = Linea.decode('utf-8')
+        Line = Linea.split()
+        print('Recibido de Proxy...')
+        print(Linea)
+        if Line[0] == 'INVITE':
             self.wfile.write(b'SIP/2.0 100 Trying' + b' ' + b'SIP/2.0 180 Ring' + b' ' + b'SIP/2.0 200 OK')
-        elif line[0] == 'BYE':
-            self.wfile.write(b'SIP/2.0 200 OK')
-        elif line[0] == 'ACK':
-            aEjecutar = './mp32rtp -i 127.0.0.1 -p 23032 <' + Audio
-            print("Vamos a ejecutar", aEjecutar)
-            os.system(aEjecutar)
-            print("Audio enviado")
-        elif len(lista) != 2:
-            self.wfile.write(b'SIP/2.0 400 Bad Request')
-        else:
-            self.wfile.write(b'SIP/2.0 405 Method Not Allowed')
 
 if __name__ == "__main__":
-    serv = socketserver.UDPServer(('', P), EchoHandler)
+    print(Puerto_UAS)
+    serv = socketserver.UDPServer(('127.0.0.1', int(Puerto_UAS)), EchoHandler)
     print("Lanzando servidor UDP de eco...")
-serv.serve_forever()
+    serv.serve_forever()
+
