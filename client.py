@@ -84,7 +84,6 @@ my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 my_socket.connect((IP_RegProxy, int(Puerto_RegProxy)))
 
-
 if METHOD == 'REGISTER':
     Expires = sys.argv[3]
     Line = 'REGISTER sip:' + Username_A + ':' + Puerto_UAS + ' ' + 'SIP/2.0\r\nExpires: ' + Expires  + '\r\n'
@@ -101,7 +100,6 @@ if METHOD == 'REGISTER':
         print(Line)
         data = my_socket.recv(1024)
         print('Respuesta Proxy... ', data.decode('utf-8'))
-        #Reply_Server = data.decode('utf-8')
 
 elif METHOD == 'INVITE':
     v = 'v=0'
@@ -115,7 +113,14 @@ elif METHOD == 'INVITE':
     print(Line)
     data = my_socket.recv(1024)
     print('Respuesta Proxy... ', data.decode('utf-8'))
-    #Reply_Server = data.decode('utf-8').split('\r\n')
+    Reply_Server = data.decode('utf-8').split('\r\n')
+    if Reply_Server[0] == ('SIP/2.0 100 Trying SIP/2.0 180 Ring SIP/2.0 200 OK'):
+        print('Enviando ACK A PROXY...')
+        Line = 'ACK sip:' + Username_A + 'SIP/2.0\r\n'
+        my_socket.send(bytes(Line, 'utf-8') + b'\r\n\r\n')
+        data = my_socket.recv(1024)
+        print('Respuesta Proxy... ', data.decode('utf-8'))
+
 elif METHOD == 'BYE':
     Line = 'BYE sip:' + Username_A + 'SIP/2.0\r\n'
     print('Enviando:') 
