@@ -132,8 +132,6 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
             pass
 
 
-
-
 if __name__ == '__main__':
     serv = socketserver.UDPServer(('', int(Puerto_Proxy)), SIPRegisterHandler)
     print('Listening...')
