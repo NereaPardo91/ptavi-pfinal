@@ -67,6 +67,7 @@ my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 my_socket.connect((('127.0.0.1'), 5555))
 
 class SIPRegisterHandler(socketserver.DatagramRequestHandler):
+
     '''
     SIPRegister server class
     '''
@@ -81,14 +82,22 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
         Line = Linea.split()
         print('Recibido de Cliente:')
         print(Linea)
+        #print('AQUI IMPRIMO LINE: ' + str(Line))
+        Direccion_IP = self.client_address[0]
+        #print('AQUI IMPRIMO DIRECCION IP: ' + Direccion_IP)
+        Direccion_SIP = Line[1]
+        #print('AQUI IMPRIMO DIRECCION SIP: ' + Direccion_SIP)
         Estado = ''
         if Line[0] == 'REGISTER':
             for i in Line:
                 if i == 'Authorization:':
                     Estado = 'Autorizado'
                     self.wfile.write(b'SIP/2.0 200 OK\r\n\r\n')
+                    self.list_users[Direccion_SIP] = Direccion_IP
+                    fichjson = self.register2json()
             if(Estado != 'Autorizado'):
                 self.wfile.write(b'SIP/2.0 401 Unauthorized\r\n\r\n')
+
         elif Line[0] == 'INVITE':
             my_socket.send(bytes(Linea, 'utf-8') + b'\r\n\r\n')
             print('Enviando a Server...')
@@ -104,6 +113,26 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
             data = my_socket.recv(1024)
             print('Respuesta Server... ', data.decode('utf-8'))
             self.wfile.write(data)
+
+
+    def register2json(self):
+        """
+        Creacion fichero json
+        """
+        json.dump(self.list_users, open('registered.json', 'w'))
+
+    def registered(self):
+        """
+        Comprobacion existencia fichero json
+        """
+        try:
+            with open("registered.json") as jsonFile:
+                self.list_users = json.load(jsonFile)
+        except:
+            pass
+
+
+
 
 if __name__ == '__main__':
     serv = socketserver.UDPServer(('', int(Puerto_Proxy)), SIPRegisterHandler)
