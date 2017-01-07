@@ -79,7 +79,7 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
         Linea = self.rfile.read()
         Linea = Linea.decode('utf-8')
         Line = Linea.split()
-        print('Mensaje:')
+        print('Recibido de Cliente:')
         print(Linea)
         Estado = ''
         if Line[0] == 'REGISTER':
@@ -95,12 +95,17 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
             print(Linea)
             data = my_socket.recv(1024)
             print('Respuesta Server... ', data.decode('utf-8'))
-            Reply_Server = data.decode('utf-8')
-            self.wfile.write(bytes(Reply_Server, 'utf-8'))
-           
+            self.wfile.write(data)
+            #print('Envio Respuesta Server del INVITE AL CLIENTE...')
+        elif Line[0] == 'ACK':
+            my_socket.send(bytes(Linea, 'utf-8') + b'\r\n\r\n')
+            print('Enviando a Server...')
+            print(Linea)
+            data = my_socket.recv(1024)
+            print('Respuesta Server... ', data.decode('utf-8'))
+            self.wfile.write(data)
 
 if __name__ == '__main__':
-    print(Puerto_Proxy)
     serv = socketserver.UDPServer(('', int(Puerto_Proxy)), SIPRegisterHandler)
     print('Listening...')
     try:
