@@ -89,14 +89,12 @@ class EchoHandler(socketserver.DatagramRequestHandler):
         Line = Linea.split()
         print('Recibido de Proxy...\r\n')
         print(Linea)
+
         if Line[0] == 'INVITE':
             print('Enviando a Proxy Confirmacion INVITE...')
             self.wfile.write(b'SIP/2.0 100 Trying' + b' ' + b'SIP/2.0 180 Ring' + b' ' + b'SIP/2.0 200 OK')
-            #Reply_Proxy = self.rfile.read()
-            #Reply_Proxy = Reply_Proxy.decode('utf-8')
-            #print('REPLY_PROXY:   ' + Reply_Proxy)
         elif Line[0] == 'ACK':
-            #print('REPLY_PROXY:   ' + Linea)
+            print('Enviando a Proxy Confirmacion ACK...')
             self.wfile.write(b'RECIBIDO ACK DE PROXY')
 
 if __name__ == "__main__":
