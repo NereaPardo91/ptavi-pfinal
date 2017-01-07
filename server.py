@@ -96,6 +96,12 @@ class EchoHandler(socketserver.DatagramRequestHandler):
         elif Line[0] == 'ACK':
             print('Enviando a Proxy Confirmacion ACK...')
             self.wfile.write(b'RECIBIDO ACK DE PROXY')
+            #aEjecutar = './mp32rtp -i 127.0.0.1 -p 23032 <' + Path_Audio
+            #print("Vamos a ejecutar", aEjecutar)
+            #os.system(aEjecutar)
+            #print("Audio enviado")
+        elif Line[0] == 'BYE':
+            print('Enviando a Proxy Confirmacion BYE...')
 
 if __name__ == "__main__":
     serv = socketserver.UDPServer(('127.0.0.1', int(Puerto_UAS)), EchoHandler)
