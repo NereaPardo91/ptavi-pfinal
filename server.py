@@ -87,13 +87,19 @@ class EchoHandler(socketserver.DatagramRequestHandler):
         Linea = self.rfile.read()
         Linea = Linea.decode('utf-8')
         Line = Linea.split()
-        print('Recibido de Proxy...')
+        print('Recibido de Proxy...\r\n')
         print(Linea)
         if Line[0] == 'INVITE':
+            print('Enviando a Proxy Confirmacion INVITE...')
             self.wfile.write(b'SIP/2.0 100 Trying' + b' ' + b'SIP/2.0 180 Ring' + b' ' + b'SIP/2.0 200 OK')
+            #Reply_Proxy = self.rfile.read()
+            #Reply_Proxy = Reply_Proxy.decode('utf-8')
+            #print('REPLY_PROXY:   ' + Reply_Proxy)
+        elif Line[0] == 'ACK':
+            #print('REPLY_PROXY:   ' + Linea)
+            self.wfile.write(b'RECIBIDO ACK DE PROXY')
 
 if __name__ == "__main__":
-    print(Puerto_UAS)
     serv = socketserver.UDPServer(('127.0.0.1', int(Puerto_UAS)), EchoHandler)
     print("Lanzando servidor UDP de eco...")
     serv.serve_forever()
