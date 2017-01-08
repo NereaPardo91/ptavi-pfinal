@@ -92,7 +92,13 @@ class EchoHandler(socketserver.DatagramRequestHandler):
 
         if Line[0] == 'INVITE':
             print('Enviando a Proxy Confirmacion INVITE...')
-            self.wfile.write(b'SIP/2.0 100 Trying' + b' ' + b'SIP/2.0 180 Ring' + b' ' + b'SIP/2.0 200 OK')
+            #v = 'v=0'
+    		#o = 'o=' + Username_A + ' ' + IP_UAS
+    		#s = 's=misesion'
+    		#t = 't=0'
+    		#m = 'm=audio ' + Puerto_RTP + ' ' + 'RTP'
+    		#Line = 'Content-Type: application/sdp\r\n' + '\r\n' + v + '\r\n' + o + '\r\n' + s + '\r\n' + t + '\r\n' + m + '\r\n'
+            self.wfile.write(b'SIP/2.0 100 Trying' + b' ' + b'SIP/2.0 180 Ring' + b' ' + b'SIP/2.0 200 OK\r\n')
         elif Line[0] == 'ACK':
             print('Enviando a Proxy Confirmacion ACK...')
             self.wfile.write(b'RECIBIDO ACK DE PROXY')
@@ -102,6 +108,7 @@ class EchoHandler(socketserver.DatagramRequestHandler):
             #print("Audio enviado")
         elif Line[0] == 'BYE':
             print('Enviando a Proxy Confirmacion BYE...')
+            self.wfile.write(b'Salida del Usuario: ' + Line[1].split(':')[0])
 
 if __name__ == "__main__":
     serv = socketserver.UDPServer(('127.0.0.1', int(Puerto_UAS)), EchoHandler)
