@@ -102,12 +102,14 @@ if METHOD == 'REGISTER':
         print('Respuesta Proxy... ', data.decode('utf-8'))
 
 elif METHOD == 'INVITE':
+    INVITADO = sys.argv[3]
     v = 'v=0'
-    o = 'o=' + Username_A + IP_UAS
+    o = 'o=' + Username_A + ' ' + IP_UAS
     s = 's=misesion'
     t = 't=0'
-    m = 'm=audio ' + Puerto_RTP + 'RTP'
-    Line = 'INVITE sip:' + Username_A + ' ' + 'SIP/2.0\r\n' + 'Content-Type: application/sdp\r\n' + '\r\n' + v + '\r\n' + o + '\r\n' + s + '\r\n' + t + '\r\n' + m + '\r\n'
+    m = 'm=audio ' + Puerto_RTP + ' ' + 'RTP'
+    print(INVITADO)
+    Line = 'INVITE sip:' + INVITADO + ' ' + 'SIP/2.0\r\n' + 'Content-Type: application/sdp\r\n' + '\r\n' + v + '\r\n' + o + '\r\n' + s + '\r\n' + t + '\r\n' + m + '\r\n'
     my_socket.send(bytes(Line, 'utf-8') + b'\r\n\r\n')
     print('Enviando:') 
     print(Line)
