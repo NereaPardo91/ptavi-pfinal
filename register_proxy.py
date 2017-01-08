@@ -82,30 +82,42 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
         Line = Linea.split()
         print('Recibido de Cliente:')
         print(Linea)
-        #print('AQUI IMPRIMO LINE: ' + str(Line))
         Direccion_IP = self.client_address[0]
-        #print('AQUI IMPRIMO DIRECCION IP: ' + Direccion_IP)
-        Direccion_SIP = Line[1]
-        #print('AQUI IMPRIMO DIRECCION SIP: ' + Direccion_SIP)
+        Puerto_Client = self.client_address[1]
+        IPort = str(Direccion_IP) + ':' + str(Puerto_Client)
+        Direccion_SIP = Line[1].split(":")
+        Direccion_SIP = Direccion_SIP[0] + ':' + Direccion_SIP[1]
         Estado = ''
         if Line[0] == 'REGISTER':
             for i in Line:
                 if i == 'Authorization:':
+                    Expires = Line[5]
+                    Hora_Act = time.time()
+                    Hora_Expiracion = Hora_Act + int(Expires)
+                    Hora = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(Hora_Expiracion))
                     Estado = 'Autorizado'
                     self.wfile.write(b'SIP/2.0 200 OK\r\n\r\n')
-                    self.list_users[Direccion_SIP] = Direccion_IP
+                    self.list_users[Direccion_SIP] = [IPort, Hora]
                     fichjson = self.register2json()
             if(Estado != 'Autorizado'):
                 self.wfile.write(b'SIP/2.0 401 Unauthorized\r\n\r\n')
 
         elif Line[0] == 'INVITE':
-            my_socket.send(bytes(Linea, 'utf-8') + b'\r\n\r\n')
-            print('Enviando a Server...')
-            print(Linea)
-            data = my_socket.recv(1024)
-            print('Respuesta Server... ', data.decode('utf-8'))
-            self.wfile.write(data)
-            #print('Envio Respuesta Server del INVITE AL CLIENTE...')
+            Usuario = Line[1]
+            Registrado = ''
+            for i in self.list_users.keys():
+                if Direccion_SIP == i:
+                    Registrado = 'SI'
+                    my_socket.send(bytes(Linea, 'utf-8') + b'\r\n\r\n')
+                    print('Enviando a Server...')
+                    print(Linea)
+                    data = my_socket.recv(1024)
+                    print('Respuesta Server... ', data.decode('utf-8'))
+                    self.wfile.write(data)
+                else:
+                    Registrado = 'NO'
+                    self.wfile.write(b'USUARIO NO REGISTRADO')
+
         elif Line[0] == 'ACK':
             my_socket.send(bytes(Linea, 'utf-8') + b'\r\n\r\n')
             print('Enviando a Server...')
@@ -119,14 +131,14 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
         """
         Creacion fichero json
         """
-        json.dump(self.list_users, open('registered.json', 'w'))
+        json.dump(self.list_users, open('Registro_Usuarios.json', 'w'))
 
     def registered(self):
         """
         Comprobacion existencia fichero json
         """
         try:
-            with open("registered.json") as jsonFile:
+            with open("Registro_Usuarios.json") as jsonFile:
                 self.list_users = json.load(jsonFile)
         except:
             pass
