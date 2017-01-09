@@ -85,9 +85,10 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
         Direccion_IP = self.client_address[0]
         Puerto_Client = self.client_address[1]
         IPort = str(Direccion_IP) + ':' + str(Puerto_Client)
-        Direccion_SIP = Line[1].split(":")
+        Direccion_SIP = Line[1].split(':')
         Direccion_SIP = Direccion_SIP[0] + ':' + Direccion_SIP[1]
         Estado = ''
+        REGISTRADO = 0
         #EL REGISTER ES SOLO ENTRE PROXY Y CLIENT
         if Line[0] == 'REGISTER':
             for i in Line:
@@ -104,19 +105,16 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
                 self.wfile.write(b'SIP/2.0 401 Unauthorized\r\n\r\n')
         #INVITE, ACK Y BYE CLIENT-PROXY-SERVER
         elif Line[0] == 'INVITE':
-            Registrado = ''
             for i in self.list_users.keys():
                 if Direccion_SIP == i:
-                    Registrado = 'SI'
                     my_socket.send(bytes(Linea, 'utf-8') + b'\r\n\r\n')
                     print('Enviando a Server...')
                     print(Linea)
                     data = my_socket.recv(1024)
                     print('Respuesta Server... ', data.decode('utf-8'))
                     self.wfile.write(data)
-                elif Direccion_SIP != i:
-                    Registrado = 'NO'
-            if Registrado == 'NO':
+                    REGISTRADO = 1
+            if REGISTRADO == 0:
                 self.wfile.write(b'SIP/2.0 404 User Not Found')
 
         elif Line[0] == 'ACK':

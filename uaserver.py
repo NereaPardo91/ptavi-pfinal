@@ -50,11 +50,11 @@ class ReadFich(ContentHandler):
             self.Datos.append(atrib)
         elif name == 'log':
             self.log_path = attrs.get('path', '')
-            atrib = {'path', ''}
+            atrib = {'path': self.log_path}
             self.Datos.append(atrib)
         elif name == 'audio':
             self.audio_path = attrs.get('path', '')
-            atrib = {'path', ''}
+            atrib = {'path': self.audio_path}
             self.Datos.append(atrib)
 
     def get_tags(self):
@@ -66,7 +66,6 @@ sHandler = ReadFich()
 parser.setContentHandler(sHandler)
 parser.parse(open(CONFIG))
 Datos = sHandler.get_tags()
-#print(Datos)
 
 Username_A = Datos[0]['username']
 Passwd_A = Datos[0]['passwd']
@@ -76,7 +75,7 @@ Puerto_RTP = Datos[2]['puerto']
 IP_RegProxy = Datos[3]['ip']
 Puerto_RegProxy = Datos[3]['puerto']
 #Path_Log = Datos[4]['path']
-#Path_Audio = Datos[5]['path']
+Path_Audio = Datos[5]['path']
 
 
 class EchoHandler(socketserver.DatagramRequestHandler):
@@ -90,22 +89,25 @@ class EchoHandler(socketserver.DatagramRequestHandler):
         print('Recibido de Proxy...\r\n')
         print(Linea)
 
+
         if Line[0] == 'INVITE':
             print('Enviando a Proxy Confirmacion INVITE...')
-            #v = 'v=0'
-    		#o = 'o=' + Username_A + ' ' + IP_UAS
-    		#s = 's=misesion'
-    		#t = 't=0'
-    		#m = 'm=audio ' + Puerto_RTP + ' ' + 'RTP'
-    		#Line = 'Content-Type: application/sdp\r\n' + '\r\n' + v + '\r\n' + o + '\r\n' + s + '\r\n' + t + '\r\n' + m + '\r\n'
+			#v = 'v=0'
+			#o = 'o=' + Username_A + ' ' + IP_UAS
+			#s = 's=misesion'
+			#t = 't=0'
+			#m = 'm=audio ' + Puerto_RTP + ' ' + 'RTP'
+			#Line = 'Content-Type: application/sdp\r\n' + '\r\n' + v + '\r\n' + o + '\r\n' + s + '\r\n' + t + '\r\n' + m + '\r\n'
             self.wfile.write(b'SIP/2.0 100 Trying' + b' ' + b'SIP/2.0 180 Ring' + b' ' + b'SIP/2.0 200 OK\r\n')
         elif Line[0] == 'ACK':
+            print(Line)
             print('Enviando a Proxy Confirmacion ACK...')
             self.wfile.write(b'RECIBIDO ACK DE PROXY')
-            #aEjecutar = './mp32rtp -i 127.0.0.1 -p 23032 <' + Path_Audio
-            #print("Vamos a ejecutar", aEjecutar)
-            #os.system(aEjecutar)
-            #print("Audio enviado")
+            aEjecutar = './mp32rtp -i '+ IP_UAS + '-p' + Puerto_RTP
+            aEjecutar += '<' + Path_Audio
+            print("Vamos a ejecutar", aEjecutar)
+            os.system(aEjecutar)
+            print("Audio enviado")
         elif Line[0] == 'BYE':
             print('Enviando a Proxy Confirmacion BYE...')
             self.wfile.write(b'Salida del Usuario: ' + Line[1].split(':')[0])

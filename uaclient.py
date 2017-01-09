@@ -52,11 +52,11 @@ class ReadFich(ContentHandler):
             self.Datos.append(atrib)
         elif name == 'log':
             self.log_path = attrs.get('path', '')
-            atrib = {'path', ''}
+            atrib = {'path': self.log_path}
             self.Datos.append(atrib)
         elif name == 'audio':
             self.audio_path = attrs.get('path', '')
-            atrib = {'path', ''}
+            atrib = {'path': self.audio_path}
             self.Datos.append(atrib)
 
     def get_tags(self):
@@ -78,7 +78,7 @@ Puerto_RTP = Datos[2]['puerto']
 IP_RegProxy = Datos[3]['ip']
 Puerto_RegProxy = Datos[3]['puerto']
 #Path_Log = Datos[4]['path']
-#Path_Audio = Datos[5]['path']
+Path_Audio = Datos[5]['path']
 
 my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -120,8 +120,8 @@ elif METHOD == 'INVITE':
         print('Enviando ACK A PROXY...')
         Line = 'ACK sip:' + INVITADO + ' ' + 'SIP/2.0\r\n'
         my_socket.send(bytes(Line, 'utf-8') + b'\r\n\r\n')
-        data = my_socket.recv(1024)
-        print('Respuesta Proxy... ', data.decode('utf-8'))
+        #data = my_socket.recv(1024)
+        #print('Respuesta Proxy... ', data.decode('utf-8'))
 elif METHOD == 'BYE':
     INVITADO = sys.argv[3]
     Line = 'BYE sip:' + INVITADO + 'SIP/2.0\r\n'
