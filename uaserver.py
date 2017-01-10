@@ -74,7 +74,7 @@ Puerto_UAS = Datos[1]['puerto']
 Puerto_RTP = Datos[2]['puerto']
 IP_RegProxy = Datos[3]['ip']
 Puerto_RegProxy = Datos[3]['puerto']
-#Path_Log = Datos[4]['path']
+Path_Log = Datos[4]['path']
 Path_Audio = Datos[5]['path']
 
 
@@ -82,18 +82,19 @@ class EchoHandler(socketserver.DatagramRequestHandler):
     """
     Echo server class
     """
-    Port_RTP_Client = []
+    Port_RTP_Client = {}
 
     def handle(self):
         Linea = self.rfile.read()
         Linea = Linea.decode('utf-8')
         Line = Linea.split()
+        Direccion_SIP = Line[1].split(':')[1]
         print('Recibido de Proxy...\r\n')
         print(Linea)
 
         if Line[0] == 'INVITE':
             Port_Client = Line[11]
-            self.Port_RTP_Client.append(Port_Client)
+            self.Port_RTP_Client[Direccion_SIP] = [Port_Client]
             print('Enviando a Proxy Confirmacion INVITE...')
             v = 'v=0'
             o = 'o=' + Username_A + ' ' + IP_UAS
@@ -107,7 +108,8 @@ class EchoHandler(socketserver.DatagramRequestHandler):
         elif Line[0] == 'ACK':
             print('Enviando a Proxy Confirmacion ACK...')
             self.wfile.write(b'RECIBIDO ACK DE PROXY')
-            aEjecutar = './mp32rtp -i '+ IP_UAS + ' -p ' + self.Port_RTP_Client[0]
+            valores = self.Port_RTP_Client[Direccion_SIP]
+            aEjecutar = './mp32rtp -i '+ '127.0.0.1' + ' -p ' + str(valores[0])
             aEjecutar += ' < ' + Path_Audio
             print("Vamos a ejecutar", aEjecutar)
             os.system(aEjecutar)

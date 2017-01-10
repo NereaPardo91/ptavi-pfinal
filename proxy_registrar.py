@@ -62,17 +62,12 @@ Path_Database = Datos[1]['path']
 Passwdpath_Database = Datos[1]['passwdpath']
 Log_Path = Datos[2]['path']
 
-#my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-#my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-#my_socket.connect((('127.0.0.1'), 5555))
-
 class SIPRegisterHandler(socketserver.DatagramRequestHandler):
 
     '''
     SIPRegister server class
     '''
     list_users = {}
-    list_port = []
 
     def handle(self):
         '''
@@ -84,18 +79,16 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
         print('Recibido de Cliente:')
         print(Linea)
         Direccion_IP = self.client_address[0]
-        #Puerto_Client = Line[1].split(':')[2]
-        #self.P_Client.append(Puerto_Client)
         IP = str(Direccion_IP) 
         Direccion_SIP = Line[1].split(':')
         Direccion_SIP = Direccion_SIP[0] + ':' + Direccion_SIP[1]
         Estado = ''
         REGISTRADO = 0
+        nonce = 1234123412341234
 
         if Line[0] == 'REGISTER':
             for i in Line:
                 if i == 'Authorization:':
-                    print(Line)
                     Puerto_Client = Line[1].split(':')[2]
                     Expires = Line[4]
                     Hora_Act = time.time()
@@ -103,14 +96,15 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
                     Hora = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(Hora_Expiracion))
                     Estado = 'Autorizado'
                     self.wfile.write(b'SIP/2.0 200 OK\r\n\r\n')
-                    self.list_users[Direccion_SIP] = [IP, Hora, Puerto_Client]
+                    self.list_users[Direccion_SIP] = [IP, Hora, Puerto_Client, Expires]
                     fichjson = self.register2json()
+
             if(Estado != 'Autorizado'):
                 self.wfile.write(b'SIP/2.0 401 Unauthorized\r\n\r\n')
 
         elif Line[0] == 'INVITE':
             for i in self.list_users.keys():
-                print(self.list_users)
+                #print(self.list_users)
                 if Direccion_SIP == i:
                     valores = self.list_users[Direccion_SIP]
                     my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -139,7 +133,6 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
             self.wfile.write(data)
 
         elif Line[0] == 'BYE':
-            print(Line)
             valores = self.list_users[Direccion_SIP]
             my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

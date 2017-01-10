@@ -77,7 +77,7 @@ Puerto_UAS = Datos[1]['puerto']
 Puerto_RTP = Datos[2]['puerto']
 IP_RegProxy = Datos[3]['ip']
 Puerto_RegProxy = Datos[3]['puerto']
-#Path_Log = Datos[4]['path']
+Path_Log = Datos[4]['path']
 Path_Audio = Datos[5]['path']
 
 my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
