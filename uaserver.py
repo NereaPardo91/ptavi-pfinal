@@ -115,7 +115,7 @@ class EchoHandler(socketserver.DatagramRequestHandler):
             self.wfile.write(b'AUDIO ENVIADO')
         elif Line[0] == 'BYE':
             print('Enviando a Proxy Confirmacion BYE...')
-            self.wfile.write(b'Salida del Usuario: ' + Line[1].split(':')[0])
+            self.wfile.write(b'SIP/2.0 200 OK\r\n')
 
 if __name__ == "__main__":
     serv = socketserver.UDPServer(('127.0.0.1', int(Puerto_UAS)), EchoHandler)

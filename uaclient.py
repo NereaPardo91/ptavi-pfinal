@@ -94,7 +94,7 @@ if METHOD == 'REGISTER':
     print('Respuesta Proxy... ', data.decode('utf-8'))
     Reply_Server = data.decode('utf-8').split('\r\n')
     if Reply_Server[0] == 'SIP/2.0 401 Unauthorized':
-        Line = 'REGISTER sip:' + Username_A + ': ' + Puerto_UAS + ' ' + 'SIP/2.0\r\nExpires: ' + Expires  + '\r\n' + 'Authorization: Digest response =123123212312321212123'
+        Line = 'REGISTER sip:' + Username_A + ':' + Puerto_UAS + ' ' + 'SIP/2.0\r\nExpires: ' + Expires  + '\r\n' + 'Authorization: Digest response =123123212312321212123'
         my_socket.send(bytes(Line, 'utf-8') + b'\r\n\r\n')
         print('Enviando:')
         print(Line)
@@ -120,14 +120,14 @@ elif METHOD == 'INVITE':
         print('Enviando ACK A PROXY...')
         Line = 'ACK sip:' + INVITADO + ' ' + 'SIP/2.0\r\n'
         my_socket.send(bytes(Line, 'utf-8') + b'\r\n\r\n')
-        #data = my_socket.recv(1024)
-        #print('Respuesta Proxy... ', data.decode('utf-8'))
+
 elif METHOD == 'BYE':
     INVITADO = sys.argv[3]
-    Line = 'BYE sip:' + INVITADO + 'SIP/2.0\r\n'
+    Line = 'BYE sip:' + INVITADO + ' ' + 'SIP/2.0\r\n'
     print('Enviando:') 
     print(Line)
     my_socket.send(bytes(Line, 'utf-8') + b'\r\n\r\n')
-
+    data = my_socket.recv(1024)
+    print('Respuesta Proxy... ', data.decode('utf-8'))
 print('Terminando socket...')
 my_socket.close()

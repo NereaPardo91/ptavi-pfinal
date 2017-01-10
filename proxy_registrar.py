@@ -62,9 +62,9 @@ Path_Database = Datos[1]['path']
 Passwdpath_Database = Datos[1]['passwdpath']
 Log_Path = Datos[2]['path']
 
-my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-my_socket.connect((('127.0.0.1'), 5555))
+#my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+#my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+#my_socket.connect((('127.0.0.1'), 5555))
 
 class SIPRegisterHandler(socketserver.DatagramRequestHandler):
 
@@ -72,6 +72,7 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
     SIPRegister server class
     '''
     list_users = {}
+    list_port = []
 
     def handle(self):
         '''
@@ -83,30 +84,38 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
         print('Recibido de Cliente:')
         print(Linea)
         Direccion_IP = self.client_address[0]
-        Puerto_Client = self.client_address[1]
-        IPort = str(Direccion_IP) + ':' + str(Puerto_Client)
+        #Puerto_Client = Line[1].split(':')[2]
+        #self.P_Client.append(Puerto_Client)
+        IP = str(Direccion_IP) 
         Direccion_SIP = Line[1].split(':')
         Direccion_SIP = Direccion_SIP[0] + ':' + Direccion_SIP[1]
         Estado = ''
         REGISTRADO = 0
-        #EL REGISTER ES SOLO ENTRE PROXY Y CLIENT
+
         if Line[0] == 'REGISTER':
             for i in Line:
                 if i == 'Authorization:':
-                    Expires = Line[5]
+                    print(Line)
+                    Puerto_Client = Line[1].split(':')[2]
+                    Expires = Line[4]
                     Hora_Act = time.time()
                     Hora_Expiracion = Hora_Act + int(Expires)
                     Hora = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(Hora_Expiracion))
                     Estado = 'Autorizado'
                     self.wfile.write(b'SIP/2.0 200 OK\r\n\r\n')
-                    self.list_users[Direccion_SIP] = [IPort, Hora]
+                    self.list_users[Direccion_SIP] = [IP, Hora, Puerto_Client]
                     fichjson = self.register2json()
             if(Estado != 'Autorizado'):
                 self.wfile.write(b'SIP/2.0 401 Unauthorized\r\n\r\n')
-        #INVITE, ACK Y BYE CLIENT-PROXY-SERVER
+
         elif Line[0] == 'INVITE':
             for i in self.list_users.keys():
+                print(self.list_users)
                 if Direccion_SIP == i:
+                    valores = self.list_users[Direccion_SIP]
+                    my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                    my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                    my_socket.connect((('127.0.0.1'), int(valores[2])))
                     my_socket.send(bytes(Linea, 'utf-8') + b'\r\n\r\n')
                     print('Enviando a Server...')
                     print(Linea)
@@ -118,6 +127,10 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
                 self.wfile.write(b'SIP/2.0 404 User Not Found')
 
         elif Line[0] == 'ACK':
+            valores = self.list_users[Direccion_SIP]
+            my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            my_socket.connect((('127.0.0.1'), int(valores[2])))
             my_socket.send(bytes(Linea, 'utf-8') + b'\r\n\r\n')
             print('Enviando a Server...')
             print(Linea)
@@ -126,6 +139,11 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
             self.wfile.write(data)
 
         elif Line[0] == 'BYE':
+            print(Line)
+            valores = self.list_users[Direccion_SIP]
+            my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            my_socket.connect((('127.0.0.1'), int(valores[2])))
             my_socket.send(bytes(Linea, 'utf-8') + b'\r\n\r\n')
             print('Enviando a Server...')
             print(Linea)
