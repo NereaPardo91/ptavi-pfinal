@@ -9,6 +9,7 @@ import sys
 import os
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
+import hashlib
 
 try:
     CONFIG = sys.argv[1]
@@ -69,7 +70,6 @@ sHandler = ReadFich()
 parser.setContentHandler(sHandler)
 parser.parse(open(CONFIG))
 Datos = sHandler.get_tags()
-#print(Datos)
 
 Username_A = Datos[0]['username']
 Passwd_A = Datos[0]['passwd']
@@ -95,7 +95,12 @@ if METHOD == 'REGISTER':
     print('Respuesta Proxy... ', data.decode('utf-8'))
     Reply_Server = data.decode('utf-8').split('\r\n')
     if Reply_Server[0] == 'SIP/2.0 401 Unauthorized':
-        Line = 'REGISTER sip:' + Username_A + ':' + Puerto_UAS + ' ' + 'SIP/2.0\r\nExpires: ' + Expires  + '\r\n' + 'Authorization: Digest response =123123212312321212123'
+        nonce = data.decode('utf-8').split(" ")[5]
+        procAutentic = nonce.split("=")[1] + Passwd_A
+        Pass_Autentic = hashlib.sha1()
+        Pass_Autentic.update(bytes(procAutentic,'utf-8'))
+        procAutentic = Pass_Autentic.digest()
+        Line = 'REGISTER sip:' + Username_A + ':' + Puerto_UAS + ' ' + 'SIP/2.0\r\nExpires: ' + Expires  + '\r\n' + 'Authorization: Digest response =' + str(procAutentic)
         my_socket.send(bytes(Line, 'utf-8') + b'\r\n\r\n')
         print('Enviando:')
         print(Line)

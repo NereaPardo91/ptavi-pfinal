@@ -11,6 +11,7 @@ import time
 import json
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
+import hashlib
 
 try:
     CONFIG = sys.argv[1]
@@ -81,30 +82,52 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
         Direccion_IP = self.client_address[0]
         IP = str(Direccion_IP) 
         Direccion_SIP = Line[1].split(':')
+        dir_SIP = Direccion_SIP[1]
         Direccion_SIP = Direccion_SIP[0] + ':' + Direccion_SIP[1]
         Estado = ''
         REGISTRADO = 0
-        nonce = 1234123412341234
+        nonce = '1234123412341234'
+        Passwords_List = []
+        Autentificacion = 0
+
+        with open('passwords', 'r') as Contraseñas:
+            for i in Contraseñas:
+                Passwords_List.append(i)
 
         if Line[0] == 'REGISTER':
             for i in Line:
                 if i == 'Authorization:':
-                    Puerto_Client = Line[1].split(':')[2]
-                    Expires = Line[4]
-                    Hora_Act = time.time()
-                    Hora_Expiracion = Hora_Act + int(Expires)
-                    Hora = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(Hora_Expiracion))
-                    Estado = 'Autorizado'
-                    self.wfile.write(b'SIP/2.0 200 OK\r\n\r\n')
-                    self.list_users[Direccion_SIP] = [IP, Hora, Puerto_Client, Expires]
-                    fichjson = self.register2json()
+                    for j in Passwords_List:
+                        if dir_SIP == j.split(",")[0]:
+                            contraseñaFich = j.split(",")[1]
+                            contraseñaFich = contraseñaFich.split("\n")[0]
+                            Procc_Autentic = nonce + contraseñaFich
+                            Pass_Autentic = hashlib.sha1()
+                            Pass_Autentic.update(bytes(Procc_Autentic,'utf-8'))
+                            Procc_Autentic = Pass_Autentic.digest()
+                            Procc_Autentic_Client = Line[8].split("=")[1]
+                    if str(Procc_Autentic) == Procc_Autentic_Client:
+                        Autentificacion = 1
+                        print("Contraseñas iguales\n")
+                    else:
+                        print("Contraseña incorrecta\n")
+                        self.wfile.write(b'SIP/2.0 401 Unauthorized\r\n\r\n')
+                    if Autentificacion == 1:
+                        Puerto_Client = Line[1].split(':')[2]
+                        Expires = Line[4]
+                        Hora_Act = time.time()
+                        Hora_Expiracion = Hora_Act + int(Expires)
+                        Hora = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(Hora_Expiracion))
+                        Estado = 'Autorizado'
+                        self.wfile.write(b'SIP/2.0 200 OK\r\n\r\n')
+                        self.list_users[Direccion_SIP] = [IP, Hora, Puerto_Client, Expires]
+                        fichjson = self.register2json()
 
             if(Estado != 'Autorizado'):
-                self.wfile.write(b'SIP/2.0 401 Unauthorized\r\n\r\n')
+                self.wfile.write(b'SIP/2.0 401 Unauthorized\r\n\r\nWWW Authenticate: Digest nonce=' + bytes(nonce, 'utf-8'))
 
         elif Line[0] == 'INVITE':
             for i in self.list_users.keys():
-                #print(self.list_users)
                 if Direccion_SIP == i:
                     valores = self.list_users[Direccion_SIP]
                     my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
