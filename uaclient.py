@@ -6,6 +6,7 @@ Programa cliente que abre un socket a un servidor
 
 import socket
 import sys
+import os
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
 
@@ -116,10 +117,18 @@ elif METHOD == 'INVITE':
     data = my_socket.recv(1024)
     print('Respuesta Proxy... ', data.decode('utf-8'))
     Reply_Server = data.decode('utf-8').split('\r\n')
+
     if Reply_Server[0] == ('SIP/2.0 100 Trying SIP/2.0 180 Ring SIP/2.0 200 OK'):
         print('Enviando ACK A PROXY...')
         Line = 'ACK sip:' + INVITADO + ' ' + 'SIP/2.0\r\n'
         my_socket.send(bytes(Line, 'utf-8') + b'\r\n\r\n')
+        Port_Send = Reply_Server[7].split()[1]
+        Dir_SIP = Reply_Server[4].split()[1]
+        aEjecutar = './mp32rtp -i '+ '127.0.0.1' + ' -p ' + Port_Send
+        aEjecutar += ' < ' + Path_Audio
+        print("Vamos a ejecutar", aEjecutar)
+        os.system(aEjecutar)
+        print("Audio enviado")
 
 elif METHOD == 'BYE':
     INVITADO = sys.argv[3]
