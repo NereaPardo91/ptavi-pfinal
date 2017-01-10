@@ -82,6 +82,8 @@ class EchoHandler(socketserver.DatagramRequestHandler):
     """
     Echo server class
     """
+    Port_RTP_Client = []
+
     def handle(self):
         Linea = self.rfile.read()
         Linea = Linea.decode('utf-8')
@@ -89,25 +91,28 @@ class EchoHandler(socketserver.DatagramRequestHandler):
         print('Recibido de Proxy...\r\n')
         print(Linea)
 
-
         if Line[0] == 'INVITE':
+            Port_Client = Line[11]
+            self.Port_RTP_Client.append(Port_Client)
             print('Enviando a Proxy Confirmacion INVITE...')
-			#v = 'v=0'
-			#o = 'o=' + Username_A + ' ' + IP_UAS
-			#s = 's=misesion'
-			#t = 't=0'
-			#m = 'm=audio ' + Puerto_RTP + ' ' + 'RTP'
-			#Line = 'Content-Type: application/sdp\r\n' + '\r\n' + v + '\r\n' + o + '\r\n' + s + '\r\n' + t + '\r\n' + m + '\r\n'
-            self.wfile.write(b'SIP/2.0 100 Trying' + b' ' + b'SIP/2.0 180 Ring' + b' ' + b'SIP/2.0 200 OK\r\n')
+            v = 'v=0'
+            o = 'o=' + Username_A + ' ' + IP_UAS
+            s = 's=misesion'
+            t = 't=0'
+            m = 'm=audio ' + Puerto_RTP + ' ' + 'RTP'
+            Line = ('SIP/2.0 100 Trying SIP/2.0 180 Ring SIP/2.0 200 OK\r\n')
+            Line += 'Content-Type: application/sdp\r\n' + '\r\n' + v + '\r\n' + o + '\r\n' + s + '\r\n' + t + '\r\n' + m + '\r\n'
+            self.wfile.write(bytes(Line, 'utf-8'))
+
         elif Line[0] == 'ACK':
-            print(Line)
             print('Enviando a Proxy Confirmacion ACK...')
             self.wfile.write(b'RECIBIDO ACK DE PROXY')
-            aEjecutar = './mp32rtp -i '+ IP_UAS + '-p' + Puerto_RTP
-            aEjecutar += '<' + Path_Audio
+            aEjecutar = './mp32rtp -i '+ IP_UAS + ' -p ' + self.Port_RTP_Client[0]
+            aEjecutar += ' < ' + Path_Audio
             print("Vamos a ejecutar", aEjecutar)
             os.system(aEjecutar)
             print("Audio enviado")
+            self.wfile.write(b'AUDIO ENVIADO')
         elif Line[0] == 'BYE':
             print('Enviando a Proxy Confirmacion BYE...')
             self.wfile.write(b'Salida del Usuario: ' + Line[1].split(':')[0])
