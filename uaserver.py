@@ -1,5 +1,5 @@
 """
-Clase (y programa principal) para un servidor de eco en UDP simple
+PRACTICA FINAL PTAVI, NEREA PARDO NAVARRO, 11-01-17
 """
 
 import socketserver
@@ -12,7 +12,7 @@ from xml.sax.handler import ContentHandler
 try:
     CONFIG = sys.argv[1]
 except:
-    sys.exit("Usage: python server.py IP port audio_file")
+    sys.exit("Usage: python server.py config")
 
 
 class ReadFich(ContentHandler):
@@ -107,20 +107,20 @@ class EchoHandler(socketserver.DatagramRequestHandler):
 
         elif Line[0] == 'ACK':
             print('Enviando a Proxy Confirmacion ACK...')
-            self.wfile.write(b'RECIBIDO ACK DE PROXY')
+            self.wfile.write(b'RECIBIDO ACK CORRECTAMENTE, LISTOS PARA ENVIAR AUDIO')
             valores = self.Port_RTP_Client[Direccion_SIP]
             aEjecutar = './mp32rtp -i '+ '127.0.0.1' + ' -p ' + str(valores[0])
             aEjecutar += ' < ' + Path_Audio
-            print("Vamos a ejecutar", aEjecutar)
+            print("Vamos a enviar el audio...", aEjecutar)
             os.system(aEjecutar)
             print("Audio enviado")
-            self.wfile.write(b'AUDIO ENVIADO')
+
         elif Line[0] == 'BYE':
             print('Enviando a Proxy Confirmacion BYE...')
             self.wfile.write(b'SIP/2.0 200 OK\r\n')
 
 if __name__ == "__main__":
-    serv = socketserver.UDPServer(('127.0.0.1', int(Puerto_UAS)), EchoHandler)
-    print("Lanzando servidor UDP de eco...")
+    serv = socketserver.UDPServer((IP_UAS, int(Puerto_UAS)), EchoHandler)
+    print("Listening...")
     serv.serve_forever()
 

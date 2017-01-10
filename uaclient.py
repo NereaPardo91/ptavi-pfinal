@@ -1,15 +1,15 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 '''
-Programa cliente que abre un socket a un servidor
+PRACTICA FINAL PTAVI, NEREA PARDO NAVARRO, 11-01-17
 '''
 
 import socket
 import sys
 import os
+import hashlib
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
-import hashlib
 
 try:
     CONFIG = sys.argv[1]
@@ -64,7 +64,6 @@ class ReadFich(ContentHandler):
     def get_tags(self):
         return self.Datos
 
-
 parser = make_parser()
 sHandler = ReadFich()
 parser.setContentHandler(sHandler)
@@ -96,11 +95,11 @@ if METHOD == 'REGISTER':
     Reply_Server = data.decode('utf-8').split('\r\n')
     if Reply_Server[0] == 'SIP/2.0 401 Unauthorized':
         nonce = data.decode('utf-8').split(" ")[5]
-        procAutentic = nonce.split("=")[1] + Passwd_A
+        Procc_Autentic = nonce.split("=")[1] + Passwd_A
         Pass_Autentic = hashlib.sha1()
-        Pass_Autentic.update(bytes(procAutentic,'utf-8'))
-        procAutentic = Pass_Autentic.digest()
-        Line = 'REGISTER sip:' + Username_A + ':' + Puerto_UAS + ' ' + 'SIP/2.0\r\nExpires: ' + Expires  + '\r\n' + 'Authorization: Digest response =' + str(procAutentic)
+        Pass_Autentic.update(bytes(Procc_Autentic,'utf-8'))
+        Procc_Autentic = Pass_Autentic.digest()
+        Line = 'REGISTER sip:' + Username_A + ':' + Puerto_UAS + ' ' + 'SIP/2.0\r\nExpires: ' + Expires  + '\r\n' + 'Authorization: Digest response =' + str(Procc_Autentic)
         my_socket.send(bytes(Line, 'utf-8') + b'\r\n\r\n')
         print('Enviando:')
         print(Line)
@@ -143,5 +142,6 @@ elif METHOD == 'BYE':
     my_socket.send(bytes(Line, 'utf-8') + b'\r\n\r\n')
     data = my_socket.recv(1024)
     print('Respuesta Proxy... ', data.decode('utf-8'))
-print('Terminando socket...')
+
+print('Cerrando UA...')
 my_socket.close()

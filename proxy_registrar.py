@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 '''
-Clase (y programa principal) para un servidor de eco en UDP simple
+PRACTICA FINAL PTAVI, NEREA PARDO NAVARRO, 11-01-17
 '''
 
 import socketserver 
@@ -82,7 +82,7 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
         Direccion_IP = self.client_address[0]
         IP = str(Direccion_IP) 
         Direccion_SIP = Line[1].split(':')
-        dir_SIP = Direccion_SIP[1]
+        SIP_Fich_Password = Direccion_SIP[1]
         Direccion_SIP = Direccion_SIP[0] + ':' + Direccion_SIP[1]
         Estado = ''
         REGISTRADO = 0
@@ -98,19 +98,19 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
             for i in Line:
                 if i == 'Authorization:':
                     for j in Passwords_List:
-                        if dir_SIP == j.split(",")[0]:
-                            contraseñaFich = j.split(",")[1]
-                            contraseñaFich = contraseñaFich.split("\n")[0]
-                            Procc_Autentic = nonce + contraseñaFich
+                        if SIP_Fich_Password == j.split(',')[0]:
+                            Password_Fich = j.split(',')[1]
+                            Password_Fich = Password_Fich.split('\n')[0]
+                            Procc_Autentic = nonce + Password_Fich
                             Pass_Autentic = hashlib.sha1()
                             Pass_Autentic.update(bytes(Procc_Autentic,'utf-8'))
                             Procc_Autentic = Pass_Autentic.digest()
-                            Procc_Autentic_Client = Line[8].split("=")[1]
+                            Procc_Autentic_Client = Line[8].split('=')[1]
                     if str(Procc_Autentic) == Procc_Autentic_Client:
                         Autentificacion = 1
-                        print("Contraseñas iguales\n")
+                        #print("Contraseñas iguales\n")
                     else:
-                        print("Contraseña incorrecta\n")
+                        #print("Contraseña incorrecta\n")
                         self.wfile.write(b'SIP/2.0 401 Unauthorized\r\n\r\n')
                     if Autentificacion == 1:
                         Puerto_Client = Line[1].split(':')[2]
@@ -187,7 +187,7 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
 
 if __name__ == '__main__':
     serv = socketserver.UDPServer(('', int(Puerto_Proxy)), SIPRegisterHandler)
-    print('Listening...')
+    print('Server ' + Name_Proxy + ' listening at port ' + Puerto_Proxy + '...')
     try:
         serv.serve_forever()
     except KeyboardInterrupt:
