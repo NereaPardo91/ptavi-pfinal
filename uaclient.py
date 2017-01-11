@@ -130,9 +130,9 @@ elif METHOD == 'INVITE':
         Dir_SIP = Reply_Server[4].split()[1]
         aEjecutar = './mp32rtp -i '+ '127.0.0.1' + ' -p ' + Port_Send
         aEjecutar += ' < ' + Path_Audio
-        print("Vamos a ejecutar", aEjecutar)
+        print('Vamos a enviar el audio...', aEjecutar)
         os.system(aEjecutar)
-        print("Audio enviado")
+        print('Audio enviado')
 
 elif METHOD == 'BYE':
     INVITADO = sys.argv[3]

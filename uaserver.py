@@ -111,9 +111,9 @@ class EchoHandler(socketserver.DatagramRequestHandler):
             valores = self.Port_RTP_Client[Direccion_SIP]
             aEjecutar = './mp32rtp -i '+ '127.0.0.1' + ' -p ' + str(valores[0])
             aEjecutar += ' < ' + Path_Audio
-            print("Vamos a enviar el audio...", aEjecutar)
+            print('Vamos a enviar el audio...', aEjecutar)
             os.system(aEjecutar)
-            print("Audio enviado")
+            print('Audio enviado')
 
         elif Line[0] == 'BYE':
             print('Enviando a Proxy Confirmacion BYE...')
