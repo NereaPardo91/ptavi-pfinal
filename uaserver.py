@@ -6,13 +6,16 @@ import socketserver
 import socket
 import sys
 import os
+import time
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
 
-try:
-    CONFIG = sys.argv[1]
-except:
-    sys.exit("Usage: python server.py config")
+
+def Content_Log(Path_Log, Contenido_Log):
+    Time_Log = time.time()
+    Fichero_Log = open(Path_Log, 'a+')
+    Fichero_Log.write(Contenido_Log)
+    Fichero_Log.close()
 
 
 class ReadFich(ContentHandler):
@@ -37,7 +40,7 @@ class ReadFich(ContentHandler):
         elif name == 'uaserver':
             self.uaserver_ip = attrs.get('ip', '')
             self.uaserver_puerto = attrs.get('puerto', '')
-            atrib = {'ip' : self.uaserver_ip, 'puerto': self.uaserver_puerto}
+            atrib = {'ip': self.uaserver_ip, 'puerto': self.uaserver_puerto}
             self.Datos.append(atrib)
         elif name == 'rtpaudio':
             self.rtpaudio_puerto = attrs.get('puerto', '')
@@ -60,6 +63,10 @@ class ReadFich(ContentHandler):
     def get_tags(self):
         return self.Datos
 
+try:
+    CONFIG = sys.argv[1]
+except:
+    sys.exit("Usage: python server.py config")
 
 parser = make_parser()
 sHandler = ReadFich()
@@ -77,6 +84,12 @@ Puerto_RegProxy = Datos[3]['puerto']
 Path_Log = Datos[4]['path']
 Path_Audio = Datos[5]['path']
 
+Hora_Log = time.time()
+Hora_Log = time.strftime('%Y%m%d%H%M%S', time.gmtime(Hora_Log))
+
+Contenido_Log = Hora_Log + ' Starting...\r\n'
+Content_Log(Path_Log, Contenido_Log)
+
 
 class EchoHandler(socketserver.DatagramRequestHandler):
     """
@@ -89,6 +102,8 @@ class EchoHandler(socketserver.DatagramRequestHandler):
         Linea = Linea.decode('utf-8')
         Line = Linea.split()
         Direccion_SIP = Line[1].split(':')[1]
+        Contenido_Log = Hora_Log + ' Received from ' + IP_RegProxy + ':' + Puerto_RegProxy + ' ' + Linea
+        Content_Log(Path_Log, Contenido_Log)
         print('Recibido de Proxy...\r\n')
         print(Linea)
 
@@ -104,23 +119,31 @@ class EchoHandler(socketserver.DatagramRequestHandler):
             Line = ('SIP/2.0 100 Trying SIP/2.0 180 Ring SIP/2.0 200 OK\r\n')
             Line += 'Content-Type: application/sdp\r\n' + '\r\n' + v + '\r\n' + o + '\r\n' + s + '\r\n' + t + '\r\n' + m + '\r\n'
             self.wfile.write(bytes(Line, 'utf-8'))
+            Contenido_Log = Hora_Log + ' Send to ' + IP_RegProxy + ':' + Puerto_RegProxy + ' ' + Line
+            Content_Log(Path_Log, Contenido_Log)
 
         elif Line[0] == 'ACK':
             print('Enviando a Proxy Confirmacion ACK...')
-            self.wfile.write(b'RECIBIDO ACK CORRECTAMENTE, LISTOS PARA ENVIAR AUDIO')
+            Contenido_Log = Hora_Log + ' Received from ' + IP_RegProxy + ':' + Puerto_RegProxy + ' ' + 'ACK'
+            Content_Log(Path_Log, Contenido_Log)
             valores = self.Port_RTP_Client[Direccion_SIP]
-            aEjecutar = './mp32rtp -i '+ '127.0.0.1' + ' -p ' + str(valores[0])
+            aEjecutar = './mp32rtp -i ' + '127.0.0.1' + ' -p ' + str(valores[0])
             aEjecutar += ' < ' + Path_Audio
             print('Vamos a enviar el audio...', aEjecutar)
             os.system(aEjecutar)
             print('Audio enviado')
 
         elif Line[0] == 'BYE':
+            Contenido_Log = Hora_Log + ' Received from ' + IP_RegProxy + ':' + Puerto_RegProxy + ' ' + Linea
+            Content_Log(Path_Log, Contenido_Log)
             print('Enviando a Proxy Confirmacion BYE...')
             self.wfile.write(b'SIP/2.0 200 OK\r\n')
+            Contenido_Log = Hora_Log + ' Send to ' + IP_RegProxy + ':' + Puerto_RegProxy + ' ' + 'SIP/2.0 200 OK'
+            Content_Log(Path_Log, Contenido_Log)
 
 if __name__ == "__main__":
     serv = socketserver.UDPServer((IP_UAS, int(Puerto_UAS)), EchoHandler)
     print("Listening...")
     serv.serve_forever()
-
+    Contenido_Log = '\n' + Hora_Log + ' Finishing...'
+    Content_Log(Path_Log, Contenido_Log)
