@@ -102,7 +102,7 @@ class EchoHandler(socketserver.DatagramRequestHandler):
         Linea = Linea.decode('utf-8')
         Line = Linea.split()
         Direccion_SIP = Line[1].split(':')[1]
-        Contenido_Log = Hora_Log + ' Received from ' + IP_RegProxy + ':' + Puerto_RegProxy + ' ' + Linea
+        Contenido_Log = '\n' + Hora_Log + ' Received from ' + IP_RegProxy + ':' + Puerto_RegProxy + ' ' + Linea
         Content_Log(Path_Log, Contenido_Log)
         print('Recibido de Proxy...\r\n')
         print(Linea)
